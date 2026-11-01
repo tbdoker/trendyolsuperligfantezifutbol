@@ -88,22 +88,27 @@ async function main() {
       `events ${cov.events ? 'yes' : 'no'}, lineups ${cov.lineups ? 'yes' : 'no'}`,
   );
 
-  // 3. Recent finished matches. The free plan may block the current season; if so, fall back
-  //    to the newest season it allows so we can still check which stats exist.
+  // 3. Recent finished matches. The free plan has no "last N" filter, so we take the whole
+  //    season's fixture list (one request) and pick the newest finished matches ourselves.
+  //    The free plan may also block the current season; if so, fall back to the newest season
+  //    it allows so we can still check which stats exist.
   let fixtures;
   try {
-    fixtures = await api('/fixtures', { league: leagueId, season, last: LAST });
+    fixtures = await api('/fixtures', { league: leagueId, season });
   } catch (err) {
     const years = (String(err.message).match(/20\d\d/g) || []).map(Number);
-    if (!/season|plan/i.test(err.message) || !years.length) throw err;
+    if (!/season/i.test(err.message) || !years.length) throw err;
     say();
     say(`> **The plan blocked season ${season}:** ${err.message}`);
     season = Math.max(...years);
     say(`> Falling back to season ${season} to check which stats exist.`);
-    fixtures = await api('/fixtures', { league: leagueId, season, last: LAST });
+    fixtures = await api('/fixtures', { league: leagueId, season });
   }
   await save('fixtures', fixtures);
-  const finished = fixtures.response.filter((f) => ['FT', 'AET', 'PEN'].includes(f.fixture.status.short));
+  const finished = fixtures.response
+    .filter((f) => ['FT', 'AET', 'PEN'].includes(f.fixture.status.short))
+    .sort((a, b) => b.fixture.timestamp - a.fixture.timestamp)
+    .slice(0, LAST);
   say();
   say(`## ${finished.length} finished matches checked (season ${season})`);
   say();
