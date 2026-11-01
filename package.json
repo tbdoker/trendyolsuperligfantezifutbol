@@ -1,0 +1,14 @@
+{
+  "name": "tribun",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Draft fantasy football for the Trendyol Süper Lig",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "data-check": "node scripts/data-check.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

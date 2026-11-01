@@ -1,0 +1,43 @@
+name: Data check
+
+on:
+  workflow_dispatch:
+    inputs:
+      last:
+        description: How many recent matches to check
+        default: "9"
+      season:
+        description: Season year (leave empty for the current season)
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Test the scoring engine
+        run: npm test
+
+      - name: Fetch Süper Lig data and score it
+        run: node scripts/data-check.mjs
+        env:
+          APIFOOTBALL_KEY: ${{ secrets.APIFOOTBALL_KEY }}
+          LAST: ${{ inputs.last }}
+          SEASON: ${{ inputs.season }}
+
+      # Raw API responses stay private to the run and expire after 3 days.
+      - name: Keep the report and raw responses
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-check
+          path: out/
+          retention-days: 3
