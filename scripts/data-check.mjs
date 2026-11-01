@@ -18,14 +18,26 @@ if (!KEY) {
 }
 
 let calls = 0;
+let lastCall = 0;
 
 class ApiError extends Error {}
 
-async function api(path, params = {}) {
+// The free plan allows about 10 requests a minute, so keep requests ~6.5 s apart.
+const GAP_MS = 6500;
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function api(path, params = {}, retried = false) {
   const url = new URL(BASE + path);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, String(v));
+  const since = Date.now() - lastCall;
+  if (since < GAP_MS) await wait(GAP_MS - since);
+  lastCall = Date.now();
   calls++;
   const res = await fetch(url, { headers: { 'x-apisports-key': KEY } });
+  if (res.status === 429 && !retried) {
+    await wait(61000);
+    return api(path, params, true);
+  }
   if (!res.ok) throw new ApiError(`${path}: HTTP ${res.status}`);
   const body = await res.json();
   const errors = Array.isArray(body.errors) ? body.errors : Object.values(body.errors || {});
