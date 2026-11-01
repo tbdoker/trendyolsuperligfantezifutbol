@@ -1,5 +1,7 @@
 node_modules/
 out/
+# API data is never committed: the repository is public.
+data/
 .env
 .env.*
 .DS_Store
