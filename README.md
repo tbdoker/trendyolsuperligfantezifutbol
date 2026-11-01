@@ -8,11 +8,15 @@ player does on the pitch, not only goals and assists.
 
 ## Status
 
-Step 1: checking that the match data we need exists.
+Two modes share one codebase: **classic** (one budget team, many leagues) and **draft** (one team per
+league, each player owned by only one manager).
 
 - `src/scoring.mjs`: the scoring engine (version 1 rules are at the top of the file)
-- `test/`: tests for the scoring engine, run with `npm test`
-- `scripts/data-check.mjs`: pulls recent Süper Lig matches from API-Football and scores every player
+- `supabase/migrations/`: the database. Football data, fantasy data, results and the draft, with row level security
+- `test/`: scoring tests (`npm test`) and database rule checks (`test/sql/run.sh`, needs Postgres 15+)
+- `scripts/data-check.mjs`: checks which stats API-Football has for recent Süper Lig matches
+- `scripts/import-season.mjs` and `scripts/analyze-season.mjs`: import a season a little each day and analyse
+  how points behave. The report is in `reports/`. Match data is never committed, because the repository is public.
 
 ## Running the data check
 
