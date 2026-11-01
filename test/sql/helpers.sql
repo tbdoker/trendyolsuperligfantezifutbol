@@ -3,10 +3,7 @@
 \set QUIET on
 set client_min_messages = notice;
 
--- Supabase grants table access to these roles; row level security then decides what is visible.
-grant usage on schema public to anon, authenticated, service_role;
-grant all on all tables in schema public to anon, authenticated, service_role;
-grant all on all sequences in schema public to anon, authenticated, service_role;
+-- Table access comes only from the migrations (20261101020000_grants.sql), as in production.
 
 -- Runs stmt and expects it to fail. With a code, the error message must start with "code:".
 create function pg_temp.expect_error(stmt text, code text, label text) returns void language plpgsql as $$

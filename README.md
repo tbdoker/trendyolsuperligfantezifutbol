@@ -11,6 +11,7 @@ player does on the pitch, not only goals and assists.
 Two modes share one codebase: **classic** (one budget team, many leagues) and **draft** (one team per
 league, each player owned by only one manager).
 
+- `web/`: the app (Next.js on Vercel, sign-in and data through Supabase). See `web/README.md`
 - `src/scoring.mjs`: the scoring engine (version 1 rules are at the top of the file)
 - `supabase/migrations/`: the database. Football data, fantasy data, results and the draft, with row level security
 - `test/`: scoring tests (`npm test`) and database rule checks (`test/sql/run.sh`, needs Postgres 15+)
