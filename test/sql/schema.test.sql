@@ -1,28 +1,5 @@
--- Tries to break the rules in the migration. Run on an empty database after
--- supabase-stub.sql and the migration (see test/sql/run.sh). Any failed check stops the run.
-\set ON_ERROR_STOP on
-
--- Supabase grants table access to these roles; row level security then decides what is visible.
-grant usage on schema public to anon, authenticated, service_role;
-grant all on all tables in schema public to anon, authenticated, service_role;
-grant all on all sequences in schema public to anon, authenticated, service_role;
-
-create function pg_temp.expect_error(stmt text, label text) returns void language plpgsql as $$
-begin
-  begin
-    execute stmt;
-  exception when others then
-    raise notice 'ok  refused: %', label;
-    return;
-  end;
-  raise exception 'FAIL  should have been refused: %', label;
-end $$;
-
-create function pg_temp.check(cond boolean, label text) returns void language plpgsql as $$
-begin
-  if not cond then raise exception 'FAIL  %', label; end if;
-  raise notice 'ok  %', label;
-end $$;
+-- Tries to break the table rules of the first migration (constraints, triggers, row level security).
+-- Run by test/sql/run.sh on a fresh database, after helpers.sql. Any failed check stops the run.
 
 -- Football data
 insert into seasons (id, name, is_current) values (2026, '2026–27', true);
@@ -60,18 +37,18 @@ insert into league_members (league_id, team_id) values
 
 -- Rules about teams and leagues
 select pg_temp.expect_error($$insert into teams (season_id, owner_id, mode, name)
-  values (2026, '00000000-0000-0000-0000-00000000000a', 'classic', 'Second classic team')$$, 'a second classic team in the same season');
+  values (2026, '00000000-0000-0000-0000-00000000000a', 'classic', 'Second classic team')$$, null, 'a second classic team in the same season');
 select pg_temp.expect_error($$insert into teams (season_id, owner_id, mode, name)
-  values (2026, '00000000-0000-0000-0000-00000000000d', 'draft', 'No league')$$, 'a draft team without a league');
+  values (2026, '00000000-0000-0000-0000-00000000000d', 'draft', 'No league')$$, null, 'a draft team without a league');
 select pg_temp.expect_error($$insert into league_members values ('10000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-00000000000a')$$,
-  'a classic team joining a draft league');
+  null, 'a classic team joining a draft league');
 select pg_temp.expect_error($$insert into league_members values ('10000000-0000-0000-0000-000000000003', '30000000-0000-0000-0000-00000000000a')$$,
-  'a draft team joining another draft league');
+  null, 'a draft team joining another draft league');
 
 -- One owner per player in a draft league; any number in classic
 insert into team_players (team_id, player_id, source, joined_round) values ('30000000-0000-0000-0000-00000000000a', 1, 'draft', 1);
 select pg_temp.expect_error($$insert into team_players (team_id, player_id, source, joined_round)
-  values ('30000000-0000-0000-0000-00000000000b', 1, 'draft', 1)$$, 'Muriqi owned twice in the same draft league');
+  values ('30000000-0000-0000-0000-00000000000b', 1, 'draft', 1)$$, null, 'Muriqi owned twice in the same draft league');
 insert into team_players (team_id, player_id, source, joined_round) values ('30000000-0000-0000-0000-00000000000c', 1, 'draft', 1);
 select pg_temp.check(true, 'Muriqi can be owned in a different draft league');
 insert into team_players (team_id, player_id, source, price_paid, joined_round)
@@ -84,9 +61,9 @@ select pg_temp.check(true, 'once released, another team in the league can sign h
 -- Lineup rules
 insert into lineups (team_id, round_id, player_id, slot, is_captain) values ('20000000-0000-0000-0000-00000000000a', 2, 1, 'start', true);
 select pg_temp.expect_error($$insert into lineups (team_id, round_id, player_id, slot, is_captain)
-  values ('20000000-0000-0000-0000-00000000000a', 2, 2, 'start', true)$$, 'two captains');
+  values ('20000000-0000-0000-0000-00000000000a', 2, 2, 'start', true)$$, null, 'two captains');
 select pg_temp.expect_error($$insert into lineups (team_id, round_id, player_id, slot)
-  values ('20000000-0000-0000-0000-00000000000a', 2, 3, 'bench')$$, 'a bench player without a bench order');
+  values ('20000000-0000-0000-0000-00000000000a', 2, 3, 'bench')$$, null, 'a bench player without a bench order');
 
 -- Standings
 insert into matchups (league_id, round_id, home_team_id, away_team_id, home_points, away_points)
@@ -96,20 +73,14 @@ insert into team_rounds (team_id, round_id, points, transfer_cost) values ('2000
 select pg_temp.check((select points from total_standings where team_id = '20000000-0000-0000-0000-00000000000a') = 66.0, 'total standings subtract transfer costs');
 
 -- Row level security, acting as each user
-create function pg_temp.as_user(uid text) returns void language plpgsql as $$
-begin
-  perform set_config('request.jwt.claim.sub', uid, false);
-  execute 'set role authenticated';
-end $$;
-
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000b'); -- Berk
 select pg_temp.check((select count(*) from teams where league_id = '10000000-0000-0000-0000-000000000002') = 2, 'Berk sees both teams in his draft league');
 select pg_temp.check((select count(*) from teams where id = '30000000-0000-0000-0000-00000000000c') = 0, 'Berk cannot see Cem''s team in another league');
 select pg_temp.check((select count(*) from leagues) = 2, 'Berk sees only his two leagues');
 select pg_temp.check((select count(*) from clubs) = 2, 'everyone can read football data');
 select pg_temp.expect_error($$insert into team_players (team_id, player_id, source, joined_round)
-  values ('30000000-0000-0000-0000-00000000000b', 2, 'draft', 2)$$, 'Berk adding a player directly (must go through a server function)');
-select pg_temp.expect_error($$insert into clubs (id, name, short_code) values (1, 'Fake', 'FK')$$, 'Berk writing football data');
+  values ('30000000-0000-0000-0000-00000000000b', 2, 'draft', 2)$$, null, 'Berk adding a player directly (must go through a server function)');
+select pg_temp.expect_error($$insert into clubs (id, name, short_code) values (1, 'Fake', 'FK')$$, null, 'Berk writing football data');
 update teams set name = 'Renamed by Berk' where id = '30000000-0000-0000-0000-00000000000a';
 reset role;
 select pg_temp.check((select name from teams where id = '30000000-0000-0000-0000-00000000000a') = 'Ali Draft', 'Berk cannot rename Ali''s team');
@@ -118,5 +89,3 @@ select pg_temp.as_user('00000000-0000-0000-0000-00000000000d'); -- Deniz, in no 
 select pg_temp.check((select count(*) from leagues) = 0, 'Deniz sees no private leagues');
 select pg_temp.check((select count(*) from lineups) = 0, 'Deniz sees no lineups');
 reset role;
-
-\echo 'All database checks passed.'
