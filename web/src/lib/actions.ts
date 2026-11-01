@@ -25,7 +25,16 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
     email,
     options: { emailRedirectTo: `${origin}/auth/callback` },
   })
-  if (error) return { error: 'Bağlantı gönderilemedi. Birkaç dakika sonra tekrar dene.' }
+  if (error) {
+    console.error('signInWithOtp failed', { code: error.code, status: error.status, message: error.message })
+    if (error.code === 'over_email_send_rate_limit' || error.status === 429) {
+      return { error: 'Kısa sürede çok fazla giriş bağlantısı istendi. Biraz bekleyip tekrar dene; gelen kutundaki son bağlantı hâlâ işe yarayabilir.' }
+    }
+    if (error.code === 'email_address_not_authorized') {
+      return { error: 'Test aşamasında sadece ekipteki adreslere e-posta gönderebiliyoruz.' }
+    }
+    return { error: 'Bağlantı gönderilemedi. Birkaç dakika sonra tekrar dene.' }
+  }
   return { message: `${email} adresine bir giriş bağlantısı gönderdik. E-postandaki bağlantıya dokun.` }
 }
 
