@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { SignInForm } from './SignInForm'
 
 export default function SignInPage() {
@@ -10,7 +11,10 @@ export default function SignInPage() {
         </h1>
         <p className="note">Klasik ya da draft: kadronu kur, arkadaşlarınla eşleş, her aksiyonda puan topla.</p>
       </div>
-      <SignInForm />
+      {/* The form reads ?hata=… from the address, which is only known at request time */}
+      <Suspense fallback={<div className="skeleton" style={{ height: 240 }} />}>
+        <SignInForm />
+      </Suspense>
     </main>
   )
 }

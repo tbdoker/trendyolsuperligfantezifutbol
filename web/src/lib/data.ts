@@ -40,7 +40,12 @@ export async function getUser() {
   const { data } = await supabase.auth.getClaims()
   const claims = data?.claims
   if (!claims) return null
-  return { id: claims.sub as string, email: (claims.email as string | undefined) ?? null }
+  const meta = (claims.user_metadata ?? {}) as { full_name?: string; name?: string }
+  return {
+    id: claims.sub as string,
+    email: (claims.email as string | undefined) ?? null,
+    name: meta.full_name ?? meta.name ?? null, // from Google, on first sign-in
+  }
 }
 
 export async function requireUser() {

@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-// The sign-in email links here with a one-time code, which becomes the session cookie.
+// Both the sign-in email and Google come back here with a one-time code,
+// which becomes the session cookie.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
@@ -9,6 +10,9 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) return NextResponse.redirect(`${origin}/mac`)
+    console.error('exchangeCodeForSession failed', { code: error.code, message: error.message })
   }
-  return NextResponse.redirect(`${origin}/giris?hata=baglanti`)
+  // Google reports a cancelled or failed sign-in as ?error=…
+  const reason = searchParams.get('error') ? 'google' : 'baglanti'
+  return NextResponse.redirect(`${origin}/giris?hata=${reason}`)
 }

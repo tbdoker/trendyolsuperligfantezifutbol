@@ -38,6 +38,22 @@ export async function signIn(_prev: FormState, formData: FormData): Promise<Form
   return { message: `${email} adresine bir giriş bağlantısı gönderdik. E-postandaki bağlantıya dokun.` }
 }
 
+// Sign in with Google: Supabase sends the browser to Google, which comes back to /auth/callback.
+export async function signInWithGoogle(): Promise<FormState> {
+  const h = await headers()
+  const origin = h.get('origin') ?? `https://${h.get('host')}`
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${origin}/auth/callback` },
+  })
+  if (error || !data.url) {
+    console.error('signInWithOAuth failed', { code: error?.code, status: error?.status, message: error?.message })
+    return { error: 'Google ile giriş şu an açık değil. E-postayla giriş yapabilirsin.' }
+  }
+  redirect(data.url)
+}
+
 export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
