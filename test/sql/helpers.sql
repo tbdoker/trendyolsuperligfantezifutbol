@@ -5,6 +5,9 @@ set client_min_messages = notice;
 
 -- Table access comes only from the migrations (20261101020000_grants.sql), as in production.
 
+-- Each test sets up its own season; remove the one the seed migration adds.
+delete from seasons;
+
 -- Runs stmt and expects it to fail. With a code, the error message must start with "code:".
 create function pg_temp.expect_error(stmt text, code text, label text) returns void language plpgsql as $$
 begin
