@@ -15,7 +15,7 @@ import { fromApiFootball } from '../src/scoring.mjs';
 
 const SEASON = Number(process.env.SEASON || 2024);
 const LEAGUE = Number(process.env.LEAGUE || 203); // Süper Lig on API-Football
-const BUDGET = Number(process.env.BUDGET || 90);
+const BUDGET = process.env.BUDGET ? Number(process.env.BUDGET) : 90; // 0 = only use what is saved
 const DIR = `data/${SEASON}`;
 const FINISHED = ['FT', 'AET', 'PEN'];
 

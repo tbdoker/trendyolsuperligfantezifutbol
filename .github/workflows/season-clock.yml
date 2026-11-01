@@ -1,0 +1,69 @@
+name: Season clock
+
+# Replays a finished season one round at a time (see supabase/migrations/*_replay.sql).
+#   setup:  rounds before "round" become history; the rest wait, hidden. Restarts the replay.
+#   open:   gives "round" kickoff times from "first_kickoff" on; transfers close then.
+#   reveal: plays "round": its results and stat lines become public.
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        options: [open, reveal, setup]
+        default: open
+      round:
+        description: Round number
+        default: "20"
+      first_kickoff:
+        description: "open only: first kickoff, e.g. 2026-11-06T20:00+03:00 (empty = tomorrow 20:00 Istanbul)"
+        default: ""
+      season:
+        description: Season start year
+        default: "2024"
+
+concurrency:
+  group: season-clock
+  cancel-in-progress: false
+
+jobs:
+  clock:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+      ACTION: ${{ inputs.action }}
+      ROUND: ${{ inputs.round }}
+      FIRST_KICKOFF: ${{ inputs.first_kickoff }}
+      SEASON: ${{ inputs.season }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the inputs
+        run: |
+          [[ "$ROUND" =~ ^[0-9]{1,2}$ ]] || { echo "Round must be a number"; exit 1; }
+          [[ "$SEASON" =~ ^20[0-9]{2}$ ]] || { echo "Season must be a year like 2024"; exit 1; }
+          if [ "$ACTION" = open ]; then
+            if [ -z "$FIRST_KICKOFF" ]; then
+              FIRST_KICKOFF=$(TZ=Europe/Istanbul date -d tomorrow +%Y-%m-%dT20:00%:z)
+            fi
+            [[ "$FIRST_KICKOFF" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(:[0-9]{2})?(Z|[+-][0-9]{2}:[0-9]{2})$ ]] \
+              || { echo "first_kickoff must look like 2026-11-06T20:00+03:00"; exit 1; }
+            echo "FIRST_KICKOFF=$FIRST_KICKOFF" >> "$GITHUB_ENV"
+          fi
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Run the clock
+        run: |
+          supabase link --project-ref "$SUPABASE_PROJECT_ID"
+          case "$ACTION" in
+            setup)  sql="select replay.setup($SEASON, $ROUND)" ;;
+            open)   sql="select replay.open_round($SEASON, $ROUND, '$FIRST_KICKOFF')" ;;
+            reveal) sql="select replay.reveal_round($SEASON, $ROUND) as stat_lines_revealed" ;;
+          esac
+          echo "$sql"
+          supabase db query --linked "$sql"
