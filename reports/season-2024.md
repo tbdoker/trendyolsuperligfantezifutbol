@@ -1,7 +1,7 @@
 # Süper Lig 2024–25 · season analysis
 
-Matches analysed: **64 of 342** finished (rounds 1, 6, 11, 16, 21, 26, 31, 36).
-487 players appeared · 1970 appearances · average **4.1** points per appearance.
+Matches analysed: **154 of 342** finished (rounds 1, 2, 3, 6, 7, 8, 11, 12, 16, 17, 21, 22, 26, 27, 31, 32, 36, 37).
+536 players appeared · 4740 appearances · average **3.9** points per appearance.
 
 > Partial season: the daily import adds about 90 matches a day until the season is complete.
 
@@ -9,88 +9,98 @@ Matches analysed: **64 of 342** finished (rounds 1, 6, 11, 16, 21, 26, 31, 36).
 
 | Position | Appearances | Points per appearance | Points per 90 min | In top 50 |
 |---|---|---|---|---|
-| KL | 133 | 4.5 | 4.7 | 3 |
-| DF | 611 | 4.2 | 5.3 | 16 |
-| OS | 819 | 4.1 | 5.8 | 21 |
-| FV | 407 | 3.6 | 6.7 | 10 |
+| KL | 316 | 4.2 | 4.4 | 3 |
+| DF | 1494 | 3.9 | 4.9 | 15 |
+| OS | 1963 | 4.2 | 5.9 | 22 |
+| FV | 967 | 3.6 | 6.7 | 10 |
 
 ## 2. How concentrated are points?
 
-- The big four (Galatasaray, Fenerbahçe, Beşiktaş, Trabzonspor) are 21% of the clubs but scored **22%** of all points.
-- Top 20 players: **12%** of all points. Top 50: 26%.
-- Big-four players in the top 20: **7**, in the top 50: 16.
+- The big four (Galatasaray, Fenerbahçe, Beşiktaş, Trabzonspor) are 21% of the clubs but scored **23%** of all points.
+- Top 20 players: **11%** of all points. Top 50: 24%.
+- Big-four players in the top 20: **8**, in the top 50: 17.
 
 Points per match by club (all its players together):
 
 | Club | Matches | Points per match | Clean sheets |
 |---|---|---|---|
-| Galatasaray | 6 | 73.9 | 2 (33%) |
-| Fenerbahçe | 7 | 72.2 | 2 (29%) |
-| Alanyaspor | 6 | 69.9 | 3 (50%) |
-| Konyaspor | 7 | 67.4 | 3 (43%) |
-| Bodrum FK | 7 | 66.7 | 5 (71%) |
-| Kasımpaşa | 7 | 65.6 | 2 (29%) |
-| Eyüpspor | 7 | 65.2 | 3 (43%) |
-| Trabzonspor | 6 | 64.9 | 3 (50%) |
-| Beşiktaş | 7 | 63.5 | 2 (29%) |
-| Samsunspor | 6 | 63.3 | 2 (33%) |
-| Gaziantep FK | 7 | 63.0 | 2 (29%) |
-| Antalyaspor | 7 | 62.6 | 4 (57%) |
-| Göztepe | 7 | 61.8 | 2 (29%) |
-| Başakşehir | 6 | 60.0 | 2 (33%) |
-| Hatayspor | 7 | 58.6 | 1 (14%) |
-| Sivasspor | 7 | 56.4 | 2 (29%) |
-| Rizespor | 7 | 54.6 | 0 (0%) |
-| Adana Demirspor | 8 | 51.4 | 2 (25%) |
-| Kayserispor | 6 | 46.2 | 2 (33%) |
+| Galatasaray | 16 | 77.1 | 6 (38%) |
+| Fenerbahçe | 16 | 73.0 | 5 (31%) |
+| Alanyaspor | 15 | 66.3 | 6 (40%) |
+| Eyüpspor | 17 | 65.1 | 6 (35%) |
+| Trabzonspor | 15 | 63.8 | 6 (40%) |
+| Beşiktaş | 15 | 63.5 | 4 (27%) |
+| Kasımpaşa | 17 | 63.2 | 2 (12%) |
+| Bodrum FK | 17 | 61.7 | 6 (35%) |
+| Başakşehir | 16 | 61.7 | 4 (25%) |
+| Samsunspor | 16 | 60.9 | 6 (38%) |
+| Göztepe | 17 | 60.2 | 4 (24%) |
+| Konyaspor | 15 | 59.4 | 3 (20%) |
+| Gaziantep FK | 17 | 57.4 | 4 (24%) |
+| Rizespor | 18 | 56.9 | 1 (6%) |
+| Hatayspor | 15 | 56.7 | 1 (7%) |
+| Antalyaspor | 17 | 54.6 | 5 (29%) |
+| Kayserispor | 16 | 52.3 | 3 (19%) |
+| Adana Demirspor | 17 | 50.8 | 2 (12%) |
+| Sivasspor | 16 | 50.6 | 3 (19%) |
 
 ## 3. Would a 3-per-club limit bite?
 
-- Best possible 15 by total points (2 KL, 5 DF, 5 OS, 3 FV), per club: Fenerbahce 3, Konyaspor 2, Kasimpasa 2, Antalyaspor 1, BB Bodrumspor 1, Alanyaspor 1, Trabzonspor 1, Besiktas 1, Eyüpspor 1, Rizespor 1, Galatasaray 1.
-- Clubs with 3+ players in the top 50: **10**; with 4+: **5** (most: Konyaspor with 5).
+- Best possible 15 by total points (2 KL, 5 DF, 5 OS, 3 FV), per club: Trabzonspor 2, Kasimpasa 2, Galatasaray 2, Samsunspor 2, Fenerbahce 2, Alanyaspor 1, Rizespor 1, Eyüpspor 1, Besiktas 1, Istanbul Basaksehir 1.
+- Clubs with 3+ players in the top 50: **7**; with 4+: **7** (most: Galatasaray with 8).
 
 ## 4. Is the best captain always the same player?
 
-- **8 different players** were the round's best in 8 rounds (most often: Mauro Icardi, 1×).
-- The round's best player came from the big four in **38%** of rounds.
-- The season's top scorer (Cláudio Winck) was in a round's top 3 in 1 of 8 rounds.
+- **18 different players** were the round's best in 18 rounds (most often: Mauro Icardi, 1×).
+- The round's best player came from the big four in **33%** of rounds.
+- The season's top scorer (Haris Hajradinović) was in a round's top 3 in 3 of 18 rounds.
 
 | Round | Best player | Points | 10th best |
 |---|---|---|---|
 | 1 | Mauro Icardi (Galatasaray) | 13.5 | 10.5 |
+| 2 | Uroš Radaković (Sivasspor) | 20.5 | 12 |
+| 3 | Fred (Fenerbahce) | 23 | 12.5 |
 | 6 | Ui-Jo Hwang (Alanyaspor) | 16 | 11.5 |
+| 7 | Olivier Ntcham (Samsunspor) | 18.5 | 12 |
+| 8 | Husniddin Alikulov (Rizespor) | 13 | 3 |
 | 11 | Alassane Ndao (Konyaspor) | 24.5 | 11.5 |
+| 12 | Allan Saint-Maximin (Fenerbahce) | 16 | 11.5 |
 | 16 | Dries Mertens (Galatasaray) | 18 | 13 |
+| 17 | Novatus Miroshi (Goztepe) | 20 | 13 |
 | 21 | Rey Manaj (Sivasspor) | 21 | 13.5 |
+| 22 | Krzysztof Piątek (Istanbul Basaksehir) | 20.5 | 13.5 |
 | 26 | Mert Müldür (Fenerbahce) | 18 | 11 |
+| 27 | Soner Aydoğdu (Samsunspor) | 19.5 | 10.5 |
 | 31 | Emre Akbaba (Eyüpspor) | 24.5 | 13.5 |
-| 36 | Jonathan Okoronkwo (Hatayspor) | 19.5 | 5 |
+| 32 | Gökhan Sazdağı (Kayserispor) | 18.5 | 11.5 |
+| 36 | Altin Zeqiri (Rizespor) | 23.5 | 12 |
+| 37 | Pedro Malheiro (Trabzonspor) | 17.5 | 12 |
 
 ## 5. How often do stars miss out?
 
-The top 30 players played under 60 minutes (or not at all) in **18%** of their club's matches on average.
+The top 30 players played under 60 minutes (or not at all) in **17%** of their club's matches on average.
 
 | Player | Club | Pos | Points | Club matches | 60+ min | Under 60 / absent |
 |---|---|---|---|---|---|---|
-| Cláudio Winck | Kasimpasa | DF | 63.0 | 7 | 6 | 1 (14%) |
-| Haris Hajradinović | Kasimpasa | OS | 54.0 | 7 | 6 | 1 (14%) |
-| Emre Akbaba | Eyüpspor | OS | 51.5 | 7 | 6 | 1 (14%) |
-| Cenk Şen | BB Bodrumspor | DF | 50.5 | 7 | 6 | 1 (14%) |
-| Alassane Ndao | Konyaspor | OS | 50.0 | 7 | 6 | 1 (14%) |
-| Ibrahim Olawoyin | Rizespor | OS | 50.0 | 7 | 7 | 0 (0%) |
-| Edin Džeko | Fenerbahce | FV | 48.5 | 7 | 6 | 1 (14%) |
-| Victor Osimhen | Galatasaray | FV | 47.5 | 6 | 4 | 2 (33%) |
-| Kenan Pirić | Antalyaspor | KL | 47.0 | 7 | 7 | 0 (0%) |
-| Youssef En-Nesyri | Fenerbahce | FV | 47.0 | 7 | 3 | 4 (57%) |
-| Fidan Aliti | Alanyaspor | DF | 46.5 | 6 | 6 | 0 (0%) |
-| Dušan Tadić | Fenerbahce | OS | 45.5 | 7 | 5 | 2 (29%) |
-| Florent Hadergjonaj | Alanyaspor | OS | 45.5 | 6 | 5 | 1 (17%) |
-| Pedro Malheiro | Trabzonspor | DF | 45.0 | 6 | 6 | 0 (0%) |
-| Arthur Masuaku | Besiktas | DF | 44.0 | 7 | 6 | 1 (14%) |
+| Haris Hajradinović | Kasimpasa | OS | 152.5 | 17 | 15 | 2 (12%) |
+| Dušan Tadić | Fenerbahce | OS | 118.5 | 16 | 13 | 3 (19%) |
+| Victor Osimhen | Galatasaray | FV | 115.0 | 16 | 10 | 6 (38%) |
+| Ibrahim Olawoyin | Rizespor | OS | 113.0 | 18 | 16 | 2 (11%) |
+| Emre Akbaba | Eyüpspor | OS | 108.0 | 17 | 14 | 3 (18%) |
+| Pedro Malheiro | Trabzonspor | DF | 106.0 | 15 | 14 | 1 (7%) |
+| Cláudio Winck | Kasimpasa | DF | 105.0 | 17 | 15 | 2 (12%) |
+| Krzysztof Piątek | Istanbul Basaksehir | FV | 102.5 | 16 | 14 | 2 (13%) |
+| Edin Džeko | Fenerbahce | FV | 102.0 | 16 | 11 | 5 (31%) |
+| Davinson Sánchez | Galatasaray | DF | 100.0 | 16 | 13 | 3 (19%) |
+| Zeki Yavru | Samsunspor | DF | 100.0 | 16 | 14 | 2 (13%) |
+| Rafa Silva | Besiktas | OS | 100.0 | 15 | 15 | 0 (0%) |
+| Youssef En-Nesyri | Fenerbahce | FV | 99.5 | 16 | 10 | 6 (38%) |
+| Mamadou Fall | Kasimpasa | OS | 98.5 | 17 | 16 | 1 (6%) |
+| Florent Hadergjonaj | Alanyaspor | OS | 96.0 | 15 | 14 | 1 (7%) |
 
 ## 6. Cards
 
-4.9 yellow and 0.23 red cards per match. Cards cost 5% of all points scored.
+4.7 yellow and 0.24 red cards per match. Cards cost 4% of all points scored.
 
 ## 7. Performance-based prices: simulation
 
