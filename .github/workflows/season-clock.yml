@@ -55,7 +55,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.0.0 # pinned: 3.0 changed defaults (local target, write confirmation)
 
       - name: Run the clock
         run: |
@@ -66,4 +66,4 @@ jobs:
             reveal) sql="select replay.reveal_round($SEASON, $ROUND) as stat_lines_revealed" ;;
           esac
           echo "$sql"
-          supabase db query --linked "$sql"
+          supabase db query --remote --yes "$sql"

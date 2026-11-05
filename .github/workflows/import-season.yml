@@ -76,7 +76,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.0.0 # pinned: 3.0 changed defaults (local target, write confirmation)
 
       - name: Sync to Supabase
         run: |
@@ -86,10 +86,10 @@ jobs:
           supabase link --project-ref "$SUPABASE_PROJECT_ID"
           for file in out/sync/*.sql; do
             echo "== $file"
-            supabase db query --linked -f "$file" > /dev/null
+            supabase db query --remote --yes -f "$file" > /dev/null
           done
           echo "Synced $(ls out/sync/*.sql | wc -l) files."
-          supabase db query --linked "select
+          supabase db query --remote --read-only "select
             (select count(*) from clubs) as clubs,
             (select count(*) from player_seasons where season_id = $SEASON) as players,
             (select count(*) from fixtures where season_id = $SEASON) as fixtures,

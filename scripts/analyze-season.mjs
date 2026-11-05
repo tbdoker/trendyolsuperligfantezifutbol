@@ -205,77 +205,190 @@ function main(say, { fixtures, matches }) {
   say();
   say(`${r1(yellows / matches.length)} yellow and ${(reds / matches.length).toFixed(2)} red cards per match. Cards cost ${pct(yellows + reds * 3, totalPts)}% of all points scored.`);
 
-  // 7. Pricing simulation (needs most of the season in order)
+  // 7. Pricing: two candidate rules, priced on the first half and tested on the second
   say();
-  say('## 7. Performance-based prices: simulation');
+  say('## 7. Pricing: two candidate rules');
   say();
-  if (rounds.length < 20 || rounds.length < rounds[rounds.length - 1] * 0.8) {
-    say('Waiting for the full season: the simulation needs the rounds in order.');
-  } else {
-    simulatePrices(say, apps, players, rounds, clubs);
-  }
+  comparePricing(say, apps, players, rounds);
 
   say();
   say('---');
   say('Scoring: `src/scoring.mjs` version 1. Outfield clean sheets use the team’s goals conceded for the whole match.');
 }
 
-// First draft of the pricing rule:
-//   form   = average points over the player's club's last 6 matches (0 when he did not play)
-//   target = 4.0 + 0.9 × form, between 4.0 and 13.5
-//   price moves toward target by at most ±0.3 a round, in steps of 0.1
-// Prices start from the target after the first 6 rounds.
-function simulatePrices(say, apps, players, rounds, clubs) {
+// Two candidate pricing rules, set before the replay's first round from the first half and
+// tested against the second half. Works on whatever rounds are imported, in order.
+//   Rule A: target = 4.0 + 0.9 × form, between 4.0 and 13.5
+//           (form = average points over the club's last 6 matches, 0 when he did not play)
+//   Rule B: rank within position by points per club match so far, mapped onto a range
+//           (KL 4.0–6.0, DF 4.0–7.0, OS 4.5–11.5, FV 4.5–11.5; the price curve rises steeply at the top)
+// After the start, every price moves toward its rule's target by at most ±0.3 a round.
+const PRICE_START_ROUND = Number(process.env.START_ROUND || 20);
+const RANGES = { KL: [4.0, 6.0], DF: [4.0, 7.0], OS: [4.5, 11.5], FV: [4.5, 11.5] };
+const SQUAD = { KL: 2, DF: 5, OS: 5, FV: 3 };
+const BUDGET = 100;
+
+function comparePricing(say, apps, players, rounds) {
+  const first = rounds.filter((r) => r < PRICE_START_ROUND);
+  const second = rounds.filter((r) => r >= PRICE_START_ROUND);
+  if (first.length < 4 || second.length < 3) {
+    say(`Not enough rounds yet: needs 4 before round ${PRICE_START_ROUND} and 3 after it.`);
+    return;
+  }
+
   const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
-  const target = (form) => clamp(4.0 + 0.9 * form, 4.0, 13.5);
+  const tenth = (x) => Math.round(x * 10) / 10;
+  const half = (x) => Math.round(x * 2) / 2;
+  const median = (xs) => {
+    const s = [...xs].sort((a, b) => a - b);
+    return s.length ? s[Math.floor(s.length / 2)] : 0;
+  };
+
   const clubRounds = new Map();
   for (const a of apps) {
-    const set = clubRounds.get(a.teamId) ?? new Set();
-    set.add(a.round);
-    clubRounds.set(a.teamId, set);
+    if (!clubRounds.has(a.teamId)) clubRounds.set(a.teamId, new Set());
+    clubRounds.get(a.teamId).add(a.round);
   }
   const pointsIn = new Map(apps.map((a) => [`${a.id}:${a.round}`, a.points]));
-  const formAt = (p, r) => {
-    const rs = [...(clubRounds.get(p.teamId) ?? [])].filter((x) => x <= r).sort((a, b) => b - a).slice(0, 6);
-    return rs.length ? sum(rs.map((x) => pointsIn.get(`${p.id}:${x}`) ?? 0)) / rs.length : 0;
+  const clubRoundsBefore = (p, r) => [...(clubRounds.get(p.teamId) ?? [])].filter((x) => x < r).sort((a, b) => b - a);
+  const pointsOver = (p, rs) => sum(rs.map((x) => pointsIn.get(`${p.id}:${x}`) ?? 0));
+  // Prices for round r only know rounds before r
+  const form = (p, r) => {
+    const rs = clubRoundsBefore(p, r).slice(0, 6);
+    return rs.length ? pointsOver(p, rs) / rs.length : 0;
   };
-  const pool = players.filter((p) => p.apps >= 5);
-  const start = rounds[5];
-  const prices = new Map(pool.map((p) => [p.id, { start: 0, price: 0, moves: 0 }]));
-  for (const p of pool) {
-    const v = Math.round(target(formAt(p, start)) * 10) / 10;
-    Object.assign(prices.get(p.id), { start: v, price: v });
-  }
-  for (const r of rounds.filter((x) => x > start)) {
-    for (const p of pool) {
-      const s = prices.get(p.id);
-      const step = clamp(target(formAt(p, r)) - s.price, -0.3, 0.3);
-      const next = Math.round((s.price + step) * 10) / 10;
-      if (next !== s.price) s.moves++;
-      s.price = next;
+  const toDate = (p, r) => {
+    const rs = clubRoundsBefore(p, r);
+    return rs.length ? pointsOver(p, rs) / rs.length : 0;
+  };
+  const playedBefore = (p, r) => apps.some((a) => a.id === p.id && a.round < r && a.minutes > 0);
+
+  const ruleA = (r) => new Map(players.map((p) => [p.id, clamp(4.0 + 0.9 * form(p, r), 4.0, 13.5)]));
+  const ruleB = (r) => {
+    const out = new Map();
+    for (const [pos, [lo, hi]] of Object.entries(RANGES)) {
+      const group = players.filter((p) => p.pos === pos);
+      const ranked = group.filter((p) => playedBefore(p, r)).map((p) => ({ p, v: toDate(p, r) })).sort((a, b) => a.v - b.v);
+      ranked.forEach(({ p }, i) => out.set(p.id, lo + (hi - lo) * (ranked.length > 1 ? i / (ranked.length - 1) : 0) ** 2));
+      for (const p of group) if (!out.has(p.id)) out.set(p.id, lo);
+    }
+    return out;
+  };
+
+  // Second-half value: points per club match after the start (0 when he did not play)
+  const secondValue = (p) => {
+    const rs = [...(clubRounds.get(p.teamId) ?? [])].filter((x) => x >= PRICE_START_ROUND);
+    return rs.length ? pointsOver(p, rs) / rs.length : null;
+  };
+  const firstPoints = (p) => pointsOver(p, first);
+
+  // Best 15 by a value, 2/5/5/3 and at most 3 per club
+  const best15 = (value) => {
+    const left = { ...SQUAD };
+    const perClub = new Map();
+    const squad = [];
+    for (const p of [...players].sort((a, b) => (value(b) ?? -1) - (value(a) ?? -1))) {
+      if (!left[p.pos] || (perClub.get(p.teamId) ?? 0) >= 3) continue;
+      left[p.pos]--;
+      perClub.set(p.teamId, (perClub.get(p.teamId) ?? 0) + 1);
+      squad.push(p);
+      if (squad.length === 15) break;
+    }
+    return squad;
+  };
+
+  // Spearman rank correlation, average ranks for ties
+  const ranks = (xs) => {
+    const order = xs.map((x, i) => [x, i]).sort((a, b) => a[0] - b[0]);
+    const out = new Array(xs.length);
+    for (let i = 0; i < order.length; ) {
+      let j = i;
+      while (j + 1 < order.length && order[j + 1][0] === order[i][0]) j++;
+      for (let k = i; k <= j; k++) out[order[k][1]] = (i + j) / 2;
+      i = j + 1;
+    }
+    return out;
+  };
+  const spearman = (xs, ys) => {
+    const rx = ranks(xs);
+    const ry = ranks(ys);
+    const mx = sum(rx) / rx.length;
+    const my = sum(ry) / ry.length;
+    const cov = sum(rx.map((x, i) => (x - mx) * (ry[i] - my)));
+    const sx = Math.sqrt(sum(rx.map((x) => (x - mx) ** 2)));
+    const sy = Math.sqrt(sum(ry.map((y) => (y - my) ** 2)));
+    return sx && sy ? cov / (sx * sy) : 0;
+  };
+
+  const pool = players.filter((p) => playedBefore(p, PRICE_START_ROUND) && secondValue(p) != null);
+  const bestFirst = best15(firstPoints);
+  const bestSecond = best15(secondValue);
+
+  const evaluate = (name, rule, round) => {
+    const start = new Map([...rule(PRICE_START_ROUND)].map(([id, v]) => [id, round(v)]));
+    const price = new Map(start);
+    const moves = new Map(players.map((p) => [p.id, 0]));
+    for (const r of second.slice(1)) {
+      const target = rule(r);
+      for (const p of players) {
+        const now = price.get(p.id);
+        const next = tenth(now + clamp(target.get(p.id) - now, -0.3, 0.3));
+        if (next !== now) moves.set(p.id, moves.get(p.id) + 1);
+        price.set(p.id, next);
+      }
+    }
+    const byPos = Object.fromEntries(
+      Object.keys(RANGES).map((pos) => {
+        const xs = pool.filter((p) => p.pos === pos).map((p) => start.get(p.id));
+        return [pos, `${Math.min(...xs).toFixed(1)}–${Math.max(...xs).toFixed(1)} (${median(xs).toFixed(1)})`];
+      }),
+    );
+    const cost = (squad) => sum(squad.map((p) => start.get(p.id)));
+    const changes = pool.map((p) => ({ p, from: start.get(p.id), to: price.get(p.id) }));
+    return {
+      name,
+      byPos,
+      costFirst: cost(bestFirst),
+      costSecond: cost(bestSecond),
+      corr: spearman(pool.map((p) => start.get(p.id)), pool.map(secondValue)),
+      moves: sum(pool.map((p) => moves.get(p.id))) / pool.length,
+      risers: [...changes].sort((a, b) => b.to - b.from - (a.to - a.from)).slice(0, 5),
+      fallers: [...changes].sort((a, b) => a.to - a.from - (b.to - b.from)).slice(0, 5),
+    };
+  };
+
+  const A = evaluate('Rule A · 4.0 + 0.9 × form', ruleA, tenth);
+  const B = evaluate('Rule B · ranked within position', ruleB, half);
+
+  say(
+    `Prices are set before round ${PRICE_START_ROUND} from imported rounds ${first.join(', ')}, then tested on rounds ${second.join(', ')}. ` +
+      `${pool.length} players played in both halves. Budget: ${BUDGET} credits for 15 players.`,
+  );
+  say();
+  say(`| | ${A.name} | ${B.name} |`);
+  say('|---|---|---|');
+  for (const pos of Object.keys(RANGES)) say(`| ${pos} price range (median) | ${A.byPos[pos]} | ${B.byPos[pos]} |`);
+  say(`| Best 15 of the first half costs | ${r1(A.costFirst)} | ${r1(B.costFirst)} |`);
+  say(`| Best 15 of the second half costs (hindsight) | ${r1(A.costSecond)} | ${r1(B.costSecond)} |`);
+  say(`| Price → second-half points per match (rank correlation, 1 = perfect) | ${A.corr.toFixed(2)} | ${B.corr.toFixed(2)} |`);
+  say(`| Price changes per player over the second half (±0.3 a round) | ${r1(A.moves)} | ${r1(B.moves)} |`);
+  say();
+  say('A good rule: the best squads cost well over the budget (so choices matter), and prices predict later points.');
+  for (const R of [A, B]) {
+    say();
+    say(`${R.name}: biggest risers and fallers over the second half`);
+    say();
+    say('| Player | Club | Pos | Start | End | Change |');
+    say('|---|---|---|---|---|---|');
+    for (const { p, from, to } of [...R.risers, ...R.fallers]) {
+      const d = to - from;
+      say(`| ${p.name} | ${p.team} | ${p.pos} | ${from.toFixed(1)} | ${to.toFixed(1)} | ${(d >= 0 ? '+' : '') + d.toFixed(1)} |`);
     }
   }
-  const rows = pool.map((p) => ({ ...p, ...prices.get(p.id) }));
-  const fmt = (p) => `| ${p.name} | ${p.team} | ${p.pos} | ${p.start.toFixed(1)} | ${p.price.toFixed(1)} | ${(p.price - p.start >= 0 ? '+' : '') + (p.price - p.start).toFixed(1)} |`;
-  say(`${pool.length} players with 5+ appearances, from round ${start}. Average price changes per player: ${r1(sum(rows.map((p) => p.moves)) / rows.length)}.`);
-  say();
-  say('Most expensive at the end:');
-  say();
-  say('| Player | Club | Pos | Start | End | Change |');
-  say('|---|---|---|---|---|---|');
-  rows.sort((a, b) => b.price - a.price).slice(0, 10).forEach((p) => say(fmt(p)));
-  say();
-  say('Biggest risers:');
-  say();
-  say('| Player | Club | Pos | Start | End | Change |');
-  say('|---|---|---|---|---|---|');
-  rows.sort((a, b) => b.price - b.start - (a.price - a.start)).slice(0, 8).forEach((p) => say(fmt(p)));
-  say();
-  say('Biggest fallers:');
-  say();
-  say('| Player | Club | Pos | Start | End | Change |');
-  say('|---|---|---|---|---|---|');
-  rows.sort((a, b) => a.price - a.start - (b.price - b.start)).slice(0, 8).forEach((p) => say(fmt(p)));
+  if (rounds.length < rounds[rounds.length - 1]) {
+    say();
+    say(`Note: only ${second.length} second-half rounds are imported, so prices move ${second.length - 1} times here instead of every round.`);
+  }
 }
 
 const lines = [];
