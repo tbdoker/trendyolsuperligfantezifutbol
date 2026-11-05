@@ -102,9 +102,54 @@ The top 30 players played under 60 minutes (or not at all) in **17%** of their c
 
 4.7 yellow and 0.24 red cards per match. Cards cost 4% of all points scored.
 
-## 7. Performance-based prices: simulation
+## 7. Pricing: two candidate rules
 
-Waiting for the full season: the simulation needs the rounds in order.
+Prices are set before round 20 from imported rounds 1, 2, 3, 6, 7, 8, 11, 12, 16, 17, then tested on rounds 21, 22, 26, 27, 31, 32, 36, 37. 462 players played in both halves. Budget: 100 credits for 15 players.
+
+| | Rule A · 4.0 + 0.9 × form | Rule B · ranked within position |
+|---|---|---|
+| KL price range (median) | 4.0–9.8 (6.3) | 4.0–6.0 (4.5) |
+| DF price range (median) | 4.0–12.0 (6.0) | 4.0–7.0 (5.0) |
+| OS price range (median) | 4.0–12.3 (6.2) | 4.5–11.5 (6.5) |
+| FV price range (median) | 4.0–11.7 (5.9) | 4.5–11.5 (6.5) |
+| Best 15 of the first half costs | 159.7 | 137.5 |
+| Best 15 of the second half costs (hindsight) | 127.0 | 112.5 |
+| Price → second-half points per match (rank correlation, 1 = perfect) | 0.60 | 0.49 |
+| Price changes per player over the second half (±0.3 a round) | 5.2 | 4.5 |
+
+A good rule: the best squads cost well over the budget (so choices matter), and prices predict later points.
+
+Rule A · 4.0 + 0.9 × form: biggest risers and fallers over the second half
+
+| Player | Club | Pos | Start | End | Change |
+|---|---|---|---|---|---|
+| Blaž Kramer | Konyaspor | FV | 6.7 | 8.8 | +2.1 |
+| Lasse Nielsen | Goztepe | DF | 4.8 | 6.9 | +2.1 |
+| Bünyamin Balcı | Antalyaspor | DF | 4.8 | 6.9 | +2.1 |
+| Davinson Sánchez | Galatasaray | DF | 6.6 | 8.7 | +2.1 |
+| Ali Sowe | Rizespor | FV | 6.5 | 8.6 | +2.1 |
+| Olivier Ntcham | Samsunspor | OS | 12.3 | 10.2 | -2.1 |
+| Okan Kocuk | Samsunspor | KL | 9.3 | 7.2 | -2.1 |
+| Zdravko Dimitrov | BB Bodrumspor | FV | 9.8 | 7.7 | -2.1 |
+| Gaius Makouta | Alanyaspor | OS | 8.9 | 6.8 | -2.1 |
+| Taha Altıkardeş | Goztepe | DF | 8.4 | 6.3 | -2.1 |
+
+Rule B · ranked within position: biggest risers and fallers over the second half
+
+| Player | Club | Pos | Start | End | Change |
+|---|---|---|---|---|---|
+| Ali Sowe | Rizespor | FV | 8.0 | 10.1 | +2.1 |
+| Bilal Boutobba | Hatayspor | OS | 5.0 | 7.1 | +2.1 |
+| Miguel Crespo | Istanbul Basaksehir | OS | 7.5 | 9.6 | +2.1 |
+| Badou Ndiaye | Gazişehir Gaziantep | OS | 6.5 | 8.6 | +2.1 |
+| Sander van de Streek | Antalyaspor | FV | 7.0 | 9.1 | +2.1 |
+| Michy Batshuayi | Galatasaray | FV | 9.5 | 7.4 | -2.1 |
+| Lamine Diack | Hatayspor | OS | 9.0 | 6.9 | -2.1 |
+| Rigoberto Rivas | Hatayspor | FV | 9.0 | 6.9 | -2.1 |
+| Zdravko Dimitrov | BB Bodrumspor | FV | 11.0 | 9.4 | -1.6 |
+| Erdoğan Yeşilyurt | Antalyaspor | OS | 8.5 | 6.9 | -1.6 |
+
+Note: only 8 second-half rounds are imported, so prices move 7 times here instead of every round.
 
 ---
 Scoring: `src/scoring.mjs` version 1. Outfield clean sheets use the team’s goals conceded for the whole match.
