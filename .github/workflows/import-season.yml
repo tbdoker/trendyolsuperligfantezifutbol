@@ -1,9 +1,10 @@
 name: Import season
 
 on:
-  schedule:
-    # Every day at 00:20 UTC (03:20 in Istanbul), just after API-Football's daily quota resets.
-    - cron: "20 0 * * *"
+  # Nightly schedule paused (7 Nov): API-Football suspended the account, most likely because
+  # GitHub's runners share IP addresses with many other users. Imports need a dedicated IP.
+  # schedule:
+  #   - cron: "20 0 * * *"
   workflow_dispatch:
     inputs:
       season:
